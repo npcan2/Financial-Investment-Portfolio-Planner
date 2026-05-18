@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  Financial Investment Portfolio Planner v4
+  Financial Investment Portfolio Planner v5
   Author: Nick (u/npcan2)
   Published: May 2026
   Source: https://github.com/npcan2/Financial-Investment-Portfolio-Planner
@@ -31,10 +31,11 @@
   </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Financial Investment Portfolio Planner v4</title>
+<title>Financial Investment Portfolio Planner v5</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+html{background:var(--bg);}
 :root {
   --bg:#0d1117; --surface:#161b22; --surface2:#1c2330; --border:#2a3444;
   --gold:#d4a843; --gold-dim:rgba(212,168,67,0.1);
@@ -50,8 +51,12 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;padding:32px 24px 80px;}
+/* Thin scroll bar for horizontal scroll elements */
+.g11::-webkit-scrollbar,.table-wrap::-webkit-scrollbar{height:3px;}
+.g11::-webkit-scrollbar-track,.table-wrap::-webkit-scrollbar-track{background:var(--surface2);}
+.g11::-webkit-scrollbar-thumb,.table-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .grain{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:128px;}
-.wrapper{max-width:1080px;margin:0 auto;position:relative;z-index:1;}
+.wrapper{max-width:1080px;margin:0 auto;position:relative;z-index:1;overflow-x:hidden;}
 
 /* ── HEADER ── */
 header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px;}
@@ -116,7 +121,7 @@ select.inp{cursor:pointer;}
 .pl-sign{position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;font-weight:500;}
 .pl-bar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;}
 .pl-bar-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;}
-.pl-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);}
+.pl-total-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);}
 .pl-row-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:12px;margin-bottom:6px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .row-tag{font-size:9px;padding:1px 6px;border-radius:3px;letter-spacing:0.04em;}
 .pl-sum-cell{display:flex;flex-direction:column;gap:3px;}
@@ -201,12 +206,14 @@ input:checked+.slider::before{transform:translateX(16px);background:#fff;}
 .chart-subtitle{font-size:13px;color:var(--text);font-family:'Playfair Display',serif;margin-bottom:14px;}
 canvas{display:block;}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;}
+.scroll-hint{display:none;font-size:9px;color:var(--border);text-align:center;margin:3px 0;letter-spacing:0.1em;}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);}
 .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .legend-dash{width:18px;height:0;flex-shrink:0;}
 
 /* ── TABLE ── */
 .table-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:14px;}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .table-header{padding:12px 20px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
 table{width:100%;border-collapse:collapse;}
 thead th{background:var(--surface2);font-size:9px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);}
@@ -233,7 +240,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
 .kdr-th-title{font-size:10px;color:var(--sky);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;font-weight:500;}
 .kdr-th-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
 .kdr-townhouses-grid{display:grid;gap:10px;margin-bottom:12px;}
-.kdr-build-banner{margin-top:10px;padding:9px 14px;background:var(--surface2);border:1px solid rgba(56,189,248,0.3);border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.kdr-build-banner{margin-top:10px;padding:9px 14px;background:var(--surface2);border:1px solid rgba(56,189,248,0.3);border-radius:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .kdr-build-banner span.val{font-family:'Playfair Display',serif;font-size:14px;color:var(--sky);}
 
 /* ── BUTTONS ── */
@@ -242,6 +249,9 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
 
 .reno-item-row{display:grid;grid-template-columns:80px 1fr 1fr auto auto;gap:6px;align-items:end;margin-bottom:6px;padding:8px;background:rgba(167,139,250,0.04);border:1px solid rgba(167,139,250,0.2);border-radius:6px;}
 .repair-item-row{display:grid;grid-template-columns:80px 1fr auto;gap:6px;align-items:end;margin-bottom:6px;padding:8px;background:rgba(78,205,196,0.04);border:1px solid rgba(78,205,196,0.2);border-radius:6px;}
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET  860px
+══════════════════════════════════════════════════════════ */
 @media(max-width:860px){
   .g11{grid-template-columns:repeat(6,1fr);}
   .g6,.g7{grid-template-columns:repeat(3,1fr);}
@@ -250,55 +260,183 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
   .stats{grid-template-columns:repeat(3,1fr);}
   .charts-grid{grid-template-columns:1fr;}
   .chart-card.wide{grid-column:1;}
-  header{flex-direction:column;gap:12px;align-items:flex-start;}
+  header{flex-direction:column;gap:10px;align-items:flex-start;}
+  .badges{flex-wrap:wrap;gap:6px;}
   .inv-summary{grid-template-columns:repeat(4,1fr) !important;}
+  .kdr-th-grid{grid-template-columns:1fr 1fr !important;}
+  [style*="grid-template-columns:1fr 1fr 1fr 1fr"]{grid-template-columns:1fr 1fr !important;}
+  .net-pos-breakdown{gap:12px;}
 }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE  600px
+══════════════════════════════════════════════════════════ */
 @media(max-width:600px){
-  body{padding:14px 10px 60px;}
-  .card{padding:12px 12px 14px;}
+  /* ── Base layout ── */
+  body{padding:12px 10px 64px;overflow-x:hidden;}
+  .wrapper{overflow-x:hidden;}
+  .card{padding:12px 12px 14px;margin-bottom:10px;}
+
+  /* ── Header ── */
+  header{padding-bottom:14px;margin-bottom:16px;}
+  h1{font-size:18px !important;line-height:1.2;}
+  .title-block p{font-size:10px;white-space:normal;line-height:1.4;}
+  .badges{gap:5px;}
+  .badge{font-size:10px;padding:5px 9px;}
+  #helpBtn,#helpBtn+button{font-size:11px !important;padding:6px 10px !important;}
+
+  /* ── Help panel ── */
+  .help-grid{grid-template-columns:1fr !important;gap:16px !important;}
+
+  /* ── Grids ── */
   .g2,.g3,.g4,.g5,.g6,.g7{grid-template-columns:1fr;}
-  /* P/L rows: force horizontal scroll so all 11 years stay on one row */
-  .g11{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;padding-bottom:2px;}
-  .g11 .pl-sum-cell{min-width:58px;flex-shrink:0;}
-  .g11 .pl-input-cell{min-width:72px;flex-shrink:0;}
-  /* Investment stat summary: 2 per row */
+  /* Loan settings: keep 2-col for paired fields */
+  .g4.two-col-mobile{grid-template-columns:1fr 1fr;}
+
+  /* ── P/L rows: horizontal scroll, all 11 years visible ── */
+  .g11{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;padding-bottom:6px;scrollbar-width:thin;}
+  /* Summary cells (mortgage, cashflow etc.) */
+  .g11 .pl-sum-cell{flex:0 0 68px;width:68px;max-width:68px;}
+  /* .pl-input-cell does not exist — actual editor cells use .pl-cell */
+  /* Income editor cells: fixed 76px — same visual weight as mortgage cells */
+  .g11 .pl-cell{flex:0 0 76px;width:76px;max-width:76px;}
+
+  /* ── P/L row labels: wrap tag to second line ── */
+  .pl-row-label{flex-direction:column;align-items:flex-start;gap:4px;padding-top:8px;margin-top:8px;}
+  .row-tag{font-size:8px;max-width:100%;white-space:normal;line-height:1.4;}
+
+  /* ── P/L income editor: match mortgage row cell exactly ── */
+  /* Year label: same style as sum-cell year */
+  .pl-cell .pl-year{font-size:9px;color:var(--muted);letter-spacing:0.04em;text-align:center;}
+  /* Input: 12px matches 11px sum-val — iOS 16+ no longer auto-zooms on focus */
+  .pl-input{
+    font-size:12px !important;
+    padding:5px 6px 5px 17px !important;
+    min-height:unset !important;
+    line-height:1.3 !important;
+    border-radius:5px !important;
+    text-align:right !important;
+  }
+  /* Sign indicator: same size as input text */
+  .pl-sign{font-size:11px !important;left:5px !important;top:50% !important;transform:translateY(-50%) !important;}
+  /* Remove decorative bar */
+  .pl-bar{display:none;}
+
+  /* ── Card headers ── */
+  .card-head{flex-direction:column;gap:8px;align-items:flex-start;}
+  .card-head-right{flex-wrap:wrap;gap:6px;}
+
+  /* ── iOS auto-zoom prevention: all inputs ≥16px ── */
+  .inp,select.inp{font-size:16px !important;}
+
+  /* ── Touch targets ── */
+  .inp{padding:10px 12px;min-height:44px;}
+  .pfx-wrap .inp{padding:10px 12px 10px 22px;}
+  .sfx-wrap .inp{padding:10px 28px 10px 12px;}
+  .opt-btn{min-height:44px;padding:8px 12px;font-size:11px;}
+  .btn{padding:9px 14px;min-height:40px;}
+  .mode-btn{flex:1;min-width:120px;text-align:center;padding:10px 10px;min-height:44px;}
+
+  /* ── PPOR toggle row ── */
+  .ppor-toggle-row{flex-direction:column !important;align-items:flex-start !important;gap:10px !important;padding:12px !important;}
+  .ppor-mode-selector{margin-left:0 !important;width:100%;}
+  .ppor-mode-selector select{width:100% !important;}
+
+  /* ── Toggle rows (generic) ── */
+  .toggle-row{padding:10px 12px;gap:10px;}
+  .toggle-divider{display:none;}
+  .toggle-section{flex-wrap:wrap;gap:8px;}
+
+  /* ── FHB row in future PPOR ── */
+  .fhb-row{flex-direction:column !important;align-items:flex-start !important;gap:6px !important;}
+
+  /* ── Repayment display row ── */
+  .repayment-row{flex-direction:column !important;align-items:flex-start !important;gap:6px !important;padding:10px 12px !important;}
+  .repayment-row .tag{margin-top:0;}
+
+  /* ── Investment summary grid ── */
   .inv-summary{grid-template-columns:repeat(2,1fr) !important;}
   .inv-calc-value{font-size:13px;}
   .inv-calc-sub{font-size:8px;}
-  .stats{grid-template-columns:repeat(2,1fr);}
-  .card-head{flex-direction:column;gap:8px;align-items:flex-start;}
-  .card-head-right{flex-wrap:wrap;gap:6px;}
-  /* Mode buttons: wrap to second line if needed */
-  .mode-btn{flex:1;min-width:130px;text-align:center;padding:8px 10px;}
-  /* Prevent iOS auto-zoom on focus — must be ≥16px */
-  .inp,.pl-input,select.inp{font-size:16px !important;}
-  .opt-btn{min-height:40px;padding:7px 10px;}
-  .btn{padding:7px 12px;}
-  /* KDR townhouse cards: single column */
+
+  /* ── KDR grids ── */
   .kdr-townhouses-grid{grid-template-columns:1fr !important;}
-  /* Charts */
+  .kdr-th-grid{grid-template-columns:1fr 1fr !important;}
+  [style*="grid-template-columns:1fr 1fr 1fr 1fr"]{grid-template-columns:1fr 1fr !important;}
+  .kdr-build-banner{padding:8px 12px;gap:8px;flex-wrap:wrap;}
+
+  /* ── Stats ── */
+  .stats{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .stress-field{grid-column:1/-1;}
+  .g4.two-col-mobile .stress-field{grid-column:1/-1;}
+  .stat{padding:10px 12px;}
+  .stat-value{font-size:15px;}
+
+  /* ── Net position ── */
+  .net-pos-card{flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px;}
+  .net-pos-head{flex-direction:column !important;align-items:flex-start !important;}
+  .net-pos-value{font-size:22px !important;}
+  .net-pos-value{font-size:24px;}
+  .net-pos-breakdown{gap:8px;width:100%;}
+  .np-sep{display:none;}
+  .np-item{font-size:10px;}
+
+  /* ── Charts ── */
+  .charts-grid{gap:10px;}
   #balanceChart{height:200px !important;max-height:200px !important;}
   #mainPayChart,#invCashChart{height:140px !important;max-height:140px !important;}
-  /* Renovation rows: year+cost on row1, period full-width on row2, × full-width on row3 */
-  .reno-item-row{grid-template-columns:1fr 1fr !important;}
+  .legend{gap:8px;}
+  .legend-item{font-size:9px;}
+
+  /* ── Table ── */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .table-header{padding:10px 14px;}
+  tbody td{padding:7px 10px;font-size:10px;}
+  thead th{padding:6px 10px;font-size:8px;}
+
+  /* ── Renovation & repair rows ── */
+  .reno-item-row{grid-template-columns:1fr 1fr !important;gap:6px;}
   .reno-item-row>div:nth-child(3){grid-column:1/-1;}
   .reno-item-row>div:nth-child(4){display:none;}
   .reno-item-row>button{grid-column:1/-1;width:100%;}
-  /* Repair rows: year+cost on row1, × full-width on row2 */
   .repair-item-row{grid-template-columns:1fr 1fr !important;}
   .repair-item-row>button{grid-column:1/-1;width:100%;}
-  /* Table scroll */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  /* Misc tightening */
-  .field-note{font-size:8px;}
+
+  /* ── Misc ── */
+  .field-note{font-size:8.5px;line-height:1.4;}
   .tag{font-size:8px;}
-  .section-title{font-size:13px;}
-  h1{font-size:20px !important;}
-  .charts-grid{gap:10px;}
-  /* State note: truncate on narrow screens */
+  .field-label{font-size:9.5px;}
   [id^="stateNote_"]{display:none;}
-  /* KDR LVR detail: allow wrapping */
   [id^="kdrLVRDetail_"],[id^="kdrLVRFix_"]{font-size:9px;line-height:1.6;}
+  .kdr-th-title{font-size:9.5px;}
+  .scroll-hint{display:block;}
+  .lbl{font-size:9.5px;}
+  .ttl{font-size:14px;}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCENARIO TABS
+═══════════════════════════════════════════════════════════ */
+#scenarioTabBar{margin:0 0 14px;overflow:hidden;}
+.scen-tabs{display:flex;align-items:center;gap:5px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none;}
+.scen-tabs::-webkit-scrollbar{display:none;}
+.scen-tab{display:flex;align-items:center;gap:5px;padding:7px 10px 7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.05em;white-space:nowrap;transition:all 0.15s;user-select:none;flex-shrink:0;min-width:0;max-width:200px;}
+.scen-tab:hover{border-color:rgba(212,168,67,0.4);color:var(--text);}
+.scen-tab.active{border-color:var(--gold);color:var(--gold);background:rgba(212,168,67,0.13);font-weight:600;box-shadow:0 0 0 1px var(--gold);position:relative;}
+.scen-tab.active::before{content:'';position:absolute;top:-1px;left:-1px;right:-1px;height:2px;background:var(--gold);border-radius:8px 8px 0 0;}
+.scen-tab-name{overflow:hidden;text-overflow:ellipsis;outline:none;min-width:20px;}
+.scen-tab-name[contenteditable="true"]{background:rgba(212,168,67,0.12);border-radius:3px;padding:1px 5px;color:var(--text);overflow:visible;text-overflow:unset;}
+.scen-tab-edit{background:none;border:none;color:var(--gold);cursor:pointer;font-size:11px;line-height:1;padding:0;opacity:0.7;transition:all 0.15s;flex-shrink:0;}
+.scen-tab-edit:hover{opacity:1;}
+.scen-tab-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 1px;opacity:0.5;transition:all 0.15s;flex-shrink:0;font-family:sans-serif;}
+.scen-tab-close:hover{color:var(--red);opacity:1;}
+.scen-tab-add{background:none;border:1px dashed var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:0.06em;padding:7px 13px;white-space:nowrap;transition:all 0.15s;flex-shrink:0;}
+.scen-tab-add:hover{border-color:var(--green);color:var(--green);background:rgba(107,222,143,0.05);}
+.scen-tab-maxed{font-size:9px;color:var(--muted);padding:7px 10px;white-space:nowrap;opacity:0.55;flex-shrink:0;}
+@media(max-width:600px){
+  .scen-tab{padding:6px 9px 6px 11px;font-size:9px;border-radius:7px;}
+  .scen-tab-add{padding:6px 11px;font-size:9px;}
+  #scenarioTabBar{margin-bottom:10px;}
 }
 </style>
 </head>
@@ -310,7 +448,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
 <header>
   <div class="title-block">
     <h1>Financial Investment Portfolio Planner</h1>
-    <p>PPOR mortgage · investment property · shares · offset-adjusted model &nbsp;<span style="font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted);letter-spacing:0.06em">v4</span></p>
+    <p>PPOR mortgage · investment property · shares · offset-adjusted model &nbsp;<span style="font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted);letter-spacing:0.06em">v5</span></p>
   </div>
   <div class="badges">
     <div class="badge" id="badgePPOR" style="color:var(--gold);border-color:rgba(212,168,67,0.4)">PPOR —%</div>
@@ -322,105 +460,93 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
   </div>
 </header>
 
+<div id="scenarioTabBar" style="margin-top:16px"></div>
+
 <!-- HELP PANEL -->
 <div id="helpPanel" style="display:none;margin-bottom:16px">
 <div class="card" style="border-color:rgba(78,205,196,0.3);background:rgba(78,205,196,0.03)">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-    <div><div class="lbl">How to use this tool</div><div class="ttl" style="color:var(--teal)">Help &amp; Reference</div></div>
+    <div><div class="lbl">How to use this tool</div><div class="ttl" style="color:var(--teal)">Help &amp; Reference · v5</div></div>
     <button class="btn" onclick="toggleHelp()" style="border-color:rgba(78,205,196,0.4);color:var(--teal)">&#x2715; Close</button>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;font-size:12px;line-height:1.75;color:var(--muted)">
+  <div class="help-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;font-size:12px;line-height:1.75;color:var(--muted)">
 
     <!-- LEFT COLUMN -->
     <div>
+      <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Scenarios &amp; Tabs</div>
+      <ul style="margin:0 0 18px 0;padding-left:16px">
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Scenario Tabs</span> — Run up to 5 independent portfolio analyses simultaneously. Each tab holds its own complete state: PPOR settings, all income values, investment properties, shares, and super. Switch between tabs without losing any data. The active tab is highlighted with a gold border; the ✎ icon on the active tab lets you rename it. Tap <em>＋ New</em> to add a scenario starting from defaults. Tap × to delete (requires confirmation). Useful for comparing scenarios like "Hold and rent" vs "Knockdown rebuild" vs "Buy interstate".</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Renaming</span> — Tap the ✎ (pencil) icon on the active tab, type a new name, then press Enter or tap away to save. Press Escape to cancel.</li>
+      </ul>
 
       <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Loan Settings</div>
       <ul style="margin:0 0 18px 0;padding-left:16px">
-        <li style="margin-bottom:5px"><span style="color:var(--text)">PPOR Loan &amp; Offset</span> — Your current mortgage balance and offset account balance. Every dollar in offset reduces the loan balance attracting interest daily. PPOR repayments are fixed; a higher offset means more of each payment goes to principal.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Remaining Term</span> — Years left on your mortgage. Determines the monthly P&amp;I repayment shown below the inputs. Changing the term recalculates repayments automatically.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Interest Rates</span> — PPOR and investment rates applied uniformly across all years unless Stress Test is active (+0.5%, +1%, or +2% added to both the PPOR and investment rate simultaneously). Stress is implemented as basis points added to the effective annual rate — e.g., +200bps = +2%. The Stress Test badge appears in the header when active.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Future Purchase mode</span> — Select <em>Future Purchase</em> from the PPOR status dropdown to model buying your home during the projection period. Before the purchase year, the tool runs in savings mode: no mortgage is charged, and your savings balance earns interest. In the purchase year: the deposit, stamp duty (auto-calculated for the chosen state), and conveyancing are deducted from savings; the loan is set to <em>price × (1 − deposit%)</em> and LMI is capitalised into the loan when LVR exceeds 80% (unless waived by the First Home Guarantee). From the purchase year onwards, normal PPOR mortgage and amortisation logic applies. The First Home Buyer toggle applies state-specific stamp duty concessions: VIC exempt ≤$600k (sliding to $750k), NSW exempt ≤$800k (sliding to $1M), QLD exempt ≤$550k, SA exempt ≤$650k, WA exempt ≤$430k (sliding to $530k), TAS 50% concession, ACT exempt ≤$1M, NT rebate of ~$18,601. FHB also activates the First Home Guarantee for eligible purchases ≤$900k with a ≥5% deposit, waiving LMI entirely.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">No PPOR (Savings-only mode)</span> — Turn off the PPOR toggle when you are renting or want to model a pure savings/investment scenario. No mortgage is charged. Your starting savings balance earns interest at the savings rate each year. All wealth accumulation comes through investment properties, shares, and super. Investment property deposits come directly from savings rather than PPOR equity.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">CGT Method</span> — Global setting applying to all property and share sales. <em>CPI Indexation (default, post-2027 rules)</em>: inflates the cost base by CPI from purchase to sale — only the real gain above inflation is taxed at your marginal rate, subject to a 30% minimum tax floor. <em>50% Discount</em>: halves the nominal gain before applying your marginal rate — pre-budget system for assets held &gt;12 months. For KDR, land and build costs are indexed separately from their own dates.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">PPOR Loan &amp; Offset</span> — Your current mortgage balance and offset account balance. Every dollar in offset reduces the interest-bearing loan balance daily. PPOR repayments are fixed; a higher offset means more of each payment goes to principal.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Remaining Term</span> — Years left on your mortgage. Determines the monthly P&amp;I repayment. Changing the term recalculates repayments automatically.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Interest Rates &amp; Tax Rate</span> — PPOR and investment rates applied uniformly across all years unless Stress Test is active (+0.5%, +1%, or +2% added to both rates simultaneously). The Marginal Tax Rate dropdown shows rates <strong>including Medicare levy</strong>: 34.5% ($45k–$135k), 39% ($135k–$190k), 47% ($190k+). The 19% bracket does not include Medicare levy. All tax calculations (NG refund, CGT, super excess tax) use the selected rate. The Stress Test badge appears in the header when active.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Future Purchase mode</span> — Model buying your PPOR during the projection. Before the purchase year, the tool runs in savings mode (no mortgage). In the purchase year: deposit, stamp duty, and conveyancing are deducted from savings; LMI is capitalised into the loan when LVR exceeds 80%. FHB toggle applies state-specific stamp duty concessions and activates the First Home Guarantee (LMI waived for eligible purchases ≤$900k with ≥5% deposit).</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">No PPOR (Savings-only)</span> — Turn off the PPOR toggle when renting or modelling a pure savings/investment scenario. No mortgage is charged. Investment property deposits come from savings rather than PPOR equity.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">CGT Method</span> — Global setting for all property and share sales. <em>CPI Indexation (default, post-2027 rules)</em>: inflates the cost base by CPI — only the real gain above inflation is taxed, subject to a 30% minimum floor. <em>50% Discount</em>: halves the nominal gain before applying your marginal rate (pre-budget system, assets held &gt;12 months). For KDR, land and build costs are indexed separately from their own dates.</li>
       </ul>
 
       <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Annual P/L Rows</div>
       <ul style="margin:0 0 18px 0;padding-left:16px">
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Income − Life Expenses</span> — Your after-tax household income minus day-to-day living costs (groceries, utilities, insurance, transport, entertainment etc). <strong>Do not include your home loan repayment</strong> — that appears automatically below as PPOR Mortgage, driven by your Loan Settings. Do not include investment contributions — those flow through the shares and investment rows. Enter the gross amount you have available before paying the mortgage. Negative years mean living costs exceeded income for that period (drawn from offset).</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">PPOR Mortgage</span> — Auto-calculated annual repayment from your Loan Settings (monthly repayment × 12). Updates when you change the interest rate, loan balance, or term. Shown as a negative — this amount leaves the offset each year. When you buy an investment property using equity, the PPOR loan increases and the repayment is recalculated on the new balance for the remaining term — the mortgage row reflects this higher cost from the purchase year onwards. Pre-Budget (already owned) properties do not draw equity and therefore do not increase the mortgage. The interest component reduces with the outstanding balance over time; modelled monthly via the amortisation loop.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Net Surplus (after mortgage)</span> — The combined total of Income − Life Expenses minus all PPOR Mortgage payments over the 11-year period. This is what's left for wealth-building after living costs and the home loan are covered.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Cash to Shares</span> — When shares are enabled, the allocation % is taken from your <em>true net available surplus</em>: <strong>Income − Life Expenses − PPOR Mortgage + Savings Interest + Investment CF + Tax Impact − NCC Contributions − Excess Concessional Tax</strong>. This means a negatively geared property reduces what goes to shares (it uses real cash), while a tax refund increases it. Savings interest (in pre-PPOR or savings-only mode) and super-related offset outflows are also factored in. Shown as a negative (leaving your cash stream). If the combined net is zero or negative, nothing is diverted — shares are never auto-sold to cover shortfalls.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Dividend Income (gross)</span> — Visible when dividend yield &gt; 0. The raw cash dividend received each year before tax (green). Franking credits are applied at the personal level; see Dividend Tax row below.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Dividend Tax</span> — Annual tax on dividends: <em>(grossed-up dividend × marginal rate) − franking credits</em>. Shown as a negative (red). In DRP mode, dividends are reinvested into the portfolio and this tax cost comes from the offset. In Cash mode, the net dividend (gross minus this tax) flows to offset.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Investment Net Cashflow</span> — Net annual cashflow from the investment: rental income minus loan repayments minus running costs (management, vacancy, land tax, maintenance). Negative when the property is negatively geared. In KDR, this worsens sharply in the build year as the combined land + build loan replaces the smaller land-only loan with no rental income. In the detailed year-by-year table, the <em>Annual CF</em> column shows this signed net cashflow for each active year, and <em>Inv.CF</em> shows the combined result including any sale net proceeds.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Investment Tax Impact</span> — Tax refund (positive, green) or bill (negative, red) from the investment. Formula: <em>(netRent − interest − opCosts − renovation depreciation − repair costs) × marginal rate</em>. Renovation depreciation is the annual non-cash deduction (cost ÷ period) spread across the depreciation life. Repair costs are fully deductible in the work year. Negative gearing on: property losses reduce taxable income and generate a refund each year. Negative gearing off: losses quarantined and carried forward, only offsetting future property income. The row label updates dynamically based on what the simulation actually produced — green <em>"negative gearing benefit"</em> when refunds are being applied, red <em>"losses carried forward"</em> when all losses are quarantined. For <strong>Established KDR</strong> properties, the label correctly changes mid-projection: losses carry forward pre-build, and the refund label applies from the build year onwards when new-build rules take effect.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Total Annual P/L</span> — The actual change in your offset balance for that year. Formula: <em>Income − Life Expenses − PPOR Mortgage − Cash to Shares + Dividend CF + Investment CF + Sale Net + Tax Impact + Manual Share Sales − Share CGT − Purchase Costs</em>. If negative, your offset shrank that year (outflows exceeded inflows). A negative year is normal when income dips, a property is negatively geared, or upfront purchase costs hit. The cumulative effect is shown in Cash Position.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Cash Position</span> — Running cumulative offset balance: starting offset plus all annual flows (income, minus mortgage, minus shares, plus/minus investment, plus tax, plus dividends, plus sale proceeds, minus purchase costs). Turns red if cumulative flows exhaust the starting balance.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Share Portfolio Value</span> — End-of-year portfolio balance compounding at your capital appreciation rate, plus any reinvested dividends (DRP) and annual surplus allocations.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Income − Life Expenses</span> — After-tax household income minus living costs. <strong>Do not include your home loan repayment</strong> — that appears below as PPOR Mortgage. Enter the amount available before paying the mortgage. Negative years mean living costs exceeded income (drawn from offset).</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">PPOR Mortgage</span> — Auto-calculated (monthly repayment × 12). Updates when you change rate, balance, or term. When an investment property is purchased using equity, the PPOR loan increases and the repayment is recalculated on the new balance for the remaining term. Already-Owned properties do not draw equity. Interest component reduces over time as the loan amortises.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Cash to Shares</span> — Allocation % taken from the true net surplus: <strong>Income − Mortgage + Savings Interest + Investment CF + Tax Impact − NCC − Excess Concessional Tax</strong>. A negatively geared property reduces what goes to shares; a tax refund increases it. If the combined net is zero or negative, nothing is diverted.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Investment Net Cashflow</span> — Rental income minus loan repayments minus running costs. Negative when negatively geared. In KDR, the build year shows a sharp drop (combined land+build loan, no rental income). The <em>Annual CF</em> column in the table shows the signed net cashflow for each active year.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Investment Tax Impact</span> — Tax refund (green, positive) or bill (red, negative): <em>(netRent − interest − costs − renovation depreciation − repairs) × marginal rate</em>. Row label is dynamic: green <em>"negative gearing benefit"</em> when refunds apply, red <em>"losses carried forward"</em> when losses are quarantined. For Established KDR, the label transitions mid-projection — losses are quarantined pre-build, then NG applies from the build year.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Total Annual P/L &amp; Cash Position</span> — Total P/L is the actual change in your offset each year. Cash Position is the running cumulative offset balance. Turns red when outflows exceed the starting balance.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Net Worth (table column)</span> — The detailed year-by-year table includes a <em>Net Worth</em> column: <em>max(0, offset) + shares + investment property values + PPOR value + super − PPOR loan − investment loan</em>. Shows the full wealth trajectory across all 11 years, not just cashflow.</li>
       </ul>
 
       <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Share Portfolio</div>
       <ul style="margin:0 0 18px 0;padding-left:16px">
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Capital Appreciation vs Total Return</span> — Enter the price growth rate only (e.g., 4%). Add dividend yield separately so the model can correctly calculate franking credits and distinguish cash vs reinvested income. Blended total return is shown automatically.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Dividend Yield</span> — Annual cash dividend as a % of portfolio value. Applied each year to the post-appreciation portfolio balance.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Franking %</span> — Level of corporate tax already paid. At 100% franking, the company has paid 30% tax on the profit distributed. Formula: <em>franking credit = cashDividend × (franking%/100) × (30/70)</em>. The grossed-up dividend (cash + credit) is included in your assessable income, then the franking credit offsets the personal tax bill. At a 47% marginal rate, fully franked dividends are taxed at an effective ~24.3% of the cash dividend.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Cash mode</span> — Net dividend (cash dividend minus personal tax net of franking credits) flows to your offset each year. Cost base is unaffected by dividends.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">DRP (Dividend Reinvestment Plan)</span> — The gross cash dividend is reinvested: portfolio value and cost base both increase by the cash dividend amount. The personal tax liability (net of franking credits) is paid from your offset. Cost base growing with each reinvestment reduces the CGT bill when you eventually sell.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Allocation from Surplus only</span> — Shares are funded from the <em>true net available surplus</em> (income minus mortgage plus savings interest plus investment CF plus tax, minus NCC and excess concessional tax), not raw income. The remainder after the allocation % stays in the offset. Negative-net years: nothing allocated, shares never auto-sold.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Debt Recycling</span> — When enabled, the interest equivalent on your share portfolio balance is treated as deductible. The annual tax refund on that interest flows to your offset.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Manual Share Sales</span> — Add specific year + dollar amount sale events. Enter the gross sale amount in dollars (e.g., $50,000); the tool clamps it to the available portfolio value at that point, so entering a large number sells the entire portfolio. Net proceeds after CGT go to offset. Triggered independently of surplus — can occur in any year regardless of cashflow.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">CGT on Shares — Weighted Average Purchase Year</span> — When you sell shares, the CGT calculation needs a purchase year to index the cost base. Rather than hardcoding the first year, the planner tracks a <em>weighted average purchase year</em> that updates each time shares are added (from surplus allocations or DRP reinvestment). If you start contributing in 2026 and add more in 2030 and 2033, the weighted year reflects when the average dollar was invested — giving a more accurate CPI indexation period than always using 2026.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Superannuation — Overview</span> — The super section models your accumulation balance from 2026 to 2036. It tracks concessional (pre-tax) contributions, non-concessional (after-tax) contributions, Division 293 tax, and investment growth inside the fund. Super balance is shown as an asset in the net position and is included in Total Portfolio Value.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Concessional Contributions</span> — These are pre-tax contributions: compulsory employer SG (11.5% from FY24-25) plus any salary sacrifice. The FY2024-25 cap is <strong>$30,000/yr</strong>. Contributions tax of 15% is deducted inside super — the planner applies this automatically. Concessional contributions do <em>not</em> come from your offset (they come from your employer/salary); only the Div 293 tax (if applicable) is deducted from your offset.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Non-Concessional Contributions (NCC)</span> — After-tax money voluntarily contributed to super. The FY2024-25 cap is <strong>$120,000/yr</strong> (bring-forward rule allows $360k over 3 years, not modelled). No tax is deducted inside super on NCC. These come directly from your offset/savings each year — they appear as a negative cash flow in the "Super: Cash from Offset" P/L row.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Division 293 Tax</span> — If your income plus concessional contributions exceeds $250,000, an additional 15% tax is applied to the lesser of: (a) your concessional contributions, or (b) the amount exceeding $250,000. This is a tax on the <em>concession</em> you received — high earners effectively pay 30% on concessional contributions instead of 15%. The planner deducts Div 293 directly from your <strong>super balance</strong> (the ATO assesses it against the fund, not your take-home pay). It does <em>not</em> appear as a cash outflow from your offset. The Div 293 headroom panel in the super card shows how much more concessional room you have before the threshold kicks in, based on your Year 1 Income − Life Expenses as an income proxy (your actual gross income may be higher).</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Super Growth Rate</span> — The annual investment return inside the fund (default 8%). Applied to the full balance at the start of each year, then contributions are added. This represents a balanced-to-growth allocation typical of industry super funds.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Super in the P/L Section</span> — Two rows are added when super is enabled: <em>Super: Cash from Offset</em> shows NCC contributions as negative cashflows from your savings each year (excess concessional tax, if any, also appears here — these do come from offset). <em>Super Balance</em> shows the accumulating fund value end of year. Division 293 tax is deducted directly from the super balance (ATO assesses it against the fund, not your take-home) and does <em>not</em> appear as a cash outflow from your offset. In the detailed year-by-year table, the <em>NCC+Div293</em> column combines both NCC (a cash outflow) and Div 293 (not a cash outflow) for brevity — Div 293 is shown in this column as an informational figure since it reduces the super balance in the same year. Both rows flow through to Total Annual P/L and Grand Total. Note: preservation age restrictions are not modelled — the balance shows as an asset but access depends on your age.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Allocation from Surplus only</span> — Shares are funded from the true net surplus; if net is zero or negative nothing is diverted. Never auto-sold to cover shortfalls.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Dividend Mode</span> — <em>Cash</em>: net dividend flows to offset each year. <em>DRP</em>: gross dividend is reinvested into the portfolio (tax comes from offset). DRP grows the portfolio faster; Cash provides annual income to offset.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Manual Share Sales</span> — Schedule specific dollar amounts to sell in nominated years. CGT is calculated using the weighted average purchase year and the global CGT method. Proceeds flow to offset.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Debt Recycling</span> — When enabled and you have an investment loan, surplus cashflow is directed to pay down the PPOR loan faster, then immediately redrawn to buy more shares (converting non-deductible PPOR debt to deductible investment debt). The interest on the redrawn amount becomes tax-deductible.</li>
       </ul>
-
     </div>
 
     <!-- RIGHT COLUMN -->
     <div>
-
       <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Investment Property</div>
-      <ul style="margin:0 0 12px 0;padding-left:16px">
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Pre-Budget Purchase (Already Owned)</span> — Toggle this on when you already own the property before the May 2026 budget. Effect: no deposit equity is drawn from the PPOR, and no stamp duty, renovation or conveyancing costs are deducted from the offset (those were paid in a prior period). Instead you enter the <em>Current Market Value 2026</em> (property growth starts from here), <em>Current Loan Balance 2026</em> (investment loan amortises from here), <em>Original Purchase Year</em> (for CGT indexation period), <em>Original Purchase Price</em> and <em>Original Stamp Duty</em> (both added to CGT cost base — not simulation costs). The PPOR mortgage does not increase because no new equity is being drawn. Property type automatically locks to Pre-Budget (Grandfathered) and the purchase year is fixed to 2026 — the year the simulation takes over management of the property. Original purchase price and original stamp duty are used purely for CGT cost base computation (they are not deducted as simulation costs). All other fields (rent, growth, running costs, renovations, repairs, sale year, etc.) remain active.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Multiple Investment Properties</span> — Click <em>+ Add Investment Property</em> to model a second or third property. Each property runs independently (its own loan, cashflows, loss carry-forward, KDR build schedule) but they share the PPOR loan (deposits are drawn as equity top-ups) and the offset account (all cashflows flow through). The P/L section shows combined Investment Net Cashflow and Tax Impact across all properties, with an "all properties" tag when more than one is active. Each property card shows its individual summary statistics. In the cash position graph, investment purchase years and KDR build years may show large single-year offset movements (deposit draw-down, upfront costs, or the combined build loan drawing through the offset) — these are intentional and represent the real cash impact of those events.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Property Mode</span> — <em>Standard Rental</em>: buy-and-hold investment. <em>Knockdown &amp; Rebuild (KDR)</em>: purchase an established property, demolish, build townhouses, and rent or sell each one individually.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Property Type (Budget 2026)</span> — Reflects May 2026 federal budget rules. <em>Pre-Budget (Grandfathered)</em>: existing rules preserved — 50% CGT discount always applies regardless of global CGT setting; negative gearing fully deductible. For properties sold on or after 1 July 2027, the gain is split: pre-July 2027 gain taxed at 50% discount, post-July 2027 gain taxed under CPI indexation (30% floor) — the planner uses the simulated end-of-2026 property value as the transition point. <em>New Build</em>: negative gearing on, CGT method follows your global setting (discount or CPI). <em>Established</em>: negative gearing off (losses quarantined and carried forward), CPI indexation CGT always forced regardless of global setting, 30% minimum tax rate applies. Each type enforces its own CGT method independent of the global selector.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Loan Type</span> — P&amp;I reduces the investment loan balance each year. Interest Only keeps the balance flat — lower repayments but no equity accumulation.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Negative Gearing</span> — On: net property losses deducted against all income, generating a tax refund each year. Off: losses quarantined in a carry-forward balance, consumed only when property income turns positive in later years.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Deposit &amp; Funding</span> — When PPOR is <em>already owned</em>: deposit funded by drawing PPOR equity (PPOR loan increases); stamp duty, reno, and other purchase costs come from offset. When PPOR is set to <em>Future Purchase</em> and the investment is bought before the PPOR purchase year: the full deposit plus all upfront costs come directly from savings — visible in the Cash Position row at purchase year (tracked as a savings withdrawal, not an equity draw). When PPOR is <em>off</em> entirely: same as above — all costs come from the savings balance. In all non-equity cases, the PPOR loan is unaffected.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Running Costs</span> — Management fee (% of net rent), vacancy allowance (% of gross rent), and annual maintenance/insurance. Land tax is calculated separately using state-specific rates on the grown property value each year. All costs compound over time as the property and rent grow.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Renovations (Capital Works)</span> — You can add multiple renovation entries, each with a year, cost, and depreciation period. <strong>Cash effect:</strong> the full cost is deducted from your offset in the year the work is done. <strong>Tax effect:</strong> the cost is depreciated over the chosen period (default 40 years at 2.5%/yr, matching ATO Division 43 for residential capital works) — each year's deduction reduces taxable rental income and increases your tax refund. <strong>CGT effect:</strong> all renovation costs are added to the CGT cost base at sale, reducing your taxable gain. Renovations done before the July 2027 transition go into the pre-2027 cost base (reducing the 50% discount portion); renovations done from July 2027 onwards are indexed separately from their completion year and reduce the post-2027 CPI-indexed gain. Period options: 5 yr (20%/yr), 10 yr (10%/yr), 20 yr (5%/yr), 40 yr (2.5%/yr ATO Div 43).</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Repairs (Immediately Deductible)</span> — You can add multiple repair entries, each with a year and cost. Unlike renovations, genuine repairs are immediately deductible under ATO rules — the full cost is deducted from your offset <em>and</em> from taxable rental income in the same year (cash outflow + same-year tax refund). Repairs are <strong>not</strong> added to the CGT cost base because the tax benefit was already fully claimed in the year incurred. Use this for genuine maintenance and repairs, not improvements (which belong under Renovations).</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">CGT Cost Base — What's Included</span> — The CGT cost base is: original purchase price + stamp duty + upfront renovation (at purchase) + in-simulation renovations + sale fees. Interest and running costs are <strong>not</strong> included, because they were claimed as tax deductions each year (ATO s110-25 ITAA 1997 only allows costs that were <em>not</em> otherwise deductible). Repairs are excluded for the same reason. For <em>established</em> properties (NG off), quarantined losses accumulate year by year in a carry-forward pool and are automatically applied against the capital gain at sale — effectively reducing CGT even though they never entered the cost base (ATO Budget 2026 treatment). The tax relief is calculated as <em>carry-forward pool × max(marginal rate, 30%)</em> and is applied before CGT is computed, then the pool resets to zero.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Sale Year, Sale Fees &amp; CGT</span> — When a sale year is set, the property sells at the projected value for that year. <em>Sale Fees</em> (default 2.5%) cover agent commission, legal, and marketing — deducted from gross proceeds <strong>and</strong> added to the CGT cost base (they are ATO-deductible disposal costs, reducing your taxable gain). Net proceeds after fees and CGT flow to offset. CGT method set globally in Loan Settings.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">GST on New Residential Property (KDR)</span> — KDR townhouses sold within 5 years of build completion attract 10% GST under ATO rules (you are treated as a property developer making a taxable supply). GST is calculated as 1/11 of the sale price (GST-inclusive) and remitted to the ATO, reducing net proceeds. Sales beyond 5 years from build completion are GST-free. Shown as a separate deduction in the sale summary card.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Land Tax (by state)</span> — Calculated annually on the grown investment property value using the rates for the selected state. Applied automatically — no manual input required. NT has no land tax. ACT uses an approximation based on unimproved capital value (~40% of property value). Thresholds and rates are based on 2024-25 schedules and are indexed annually by each state revenue office.</li>
+      <ul style="margin:0 0 18px 0;padding-left:16px">
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Property Types</span> — <em>Pre-Budget (Grandfathered)</em>: purchased before May 2026 budget, negative gearing unrestricted, split CGT at 2027 (50% discount on pre-2027 gain, CPI indexation on post-2027 gain). <em>New Build</em>: CPI indexation CGT, negative gearing unrestricted. <em>Established</em>: post-Budget rules — negative gearing off (losses quarantined), CPI indexation CGT, 30% minimum CGT floor. Accumulated carried losses reduce CGT at sale.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Interest Only vs P&amp;I</span> — IO loans keep the balance flat (no principal reduction) giving better annual cashflow. P&amp;I loans reduce the balance over time but have higher repayments. Switch types at any time — the simulation uses the selected type for the full period.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">LMI</span> — Calculated automatically when LVR exceeds 80%. LMI is treated as an upfront cash cost from the offset. FHB First Home Guarantee waives LMI for eligible purchases (≤$900k, ≥5% deposit). Appears as a toggle when LVR &gt; 80%.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Pre-Budget Purchase (Already Owned)</span> — Toggle to model a property already in your portfolio. The PPOR mortgage does not increase (no equity is drawn). Original purchase price and stamp duty are used for the CGT cost base only — not deducted as simulation costs. Property type locks to Pre-Budget.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Multiple Properties (up to 3)</span> — Each property card is independent. Investment deposits for properties added during the projection draw from PPOR equity (increasing the mortgage). In savings-only mode, deposits come from savings. Each card shows its own summary statistics.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Renovations &amp; Repairs</span> — Renovations: capital works depreciated at cost ÷ period years (e.g. $50k over 40 years = $1,250/yr non-cash deduction). Repairs: fully deductible in the work year as a cash expense. Both increase the tax refund. The cash cost is deducted from the offset in the nominated year.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">CGT on Sale</span> — The sale pill in the table shows the CGT amount, the rate applied, and the method used (e.g. "CGT−$85k <span style="opacity:0.7;font-size:10px">47% CPI idx</span>"). This lets you verify the exact calculation at a glance. For Established properties, accumulated quarantined losses are applied against the capital gain at sale before CGT is computed.</li>
       </ul>
 
-      <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Knockdown &amp; Rebuild (KDR)</div>
-      <ul style="margin:0 0 14px 0;padding-left:16px">
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Pre-Build Weekly Rent</span> — In KDR mode this field is relabeled from "Weekly Rent" and represents the rental income from the original house during the holding period before demolition. The simulation uses this rent (grown by Rent Growth % each year) for every year from purchase up to the build year. Once the build starts, this pre-build rent ceases and is replaced by per-townhouse rent from the following year.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Build Start Year</span> — Construction begins. The original property is demolished; the pre-build rent ceases in this year. Rent from new townhouses starts the following year (one full construction year assumed). The combined land + build loan replaces the pre-build loan from this year.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Build Loan &amp; Repayments</span> — Build costs (indexed from 2026 at build cost inflation) are added to the investment loan in the build year. The monthly repayment is then recalculated on the combined land + build balance — this is typically a significant jump (e.g., $55k/yr land-only rising to $184k/yr combined). Reflected immediately in the Investment Net Cashflow and Cash Position rows.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Per-Townhouse Settings</span> — Each townhouse has weekly rent, a sale price (in 2026 dollars, compounded at property growth rate to sale year), and a sale year. Set sale year to 0 to hold indefinitely.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Flip</span> — Setting a townhouse sale year to buildYear + 1 marks it as an immediate flip. No rent is earned for that townhouse in the post-build year — it is excluded from the rental income calculation and sold immediately at the completion price. GST applies if sold within 5 years of build completion.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">KDR CGT</span> — Land and build costs are CPI-indexed separately from their own dates: land from the original purchase year, build costs from the build year. This prevents over-indexation (indexing 2033 build costs from 2026 rather than 2033 would inflate the cost base by ~$230k per townhouse at 3% CPI and dramatically understate CGT). Sale fees are added to the cost base as disposal costs. Accumulated carrying losses for Established KDR properties are applied against the land portion of the gain at sale.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">KDR + Established Property Type</span> — Pre-build years use established rules (losses quarantined and carried forward, no immediate deduction against wages). From the build year onwards, new build rules apply (negative gearing on, losses immediately deductible). The Tax Impact row label reflects this transition — it shows <em>losses carried forward</em> in pre-build years and switches to the green <em>negative gearing benefit</em> label from the build year. CGT on townhouse sales uses the global method — 50% discount is available for new builds. Accumulated carried-forward losses are automatically applied against the capital gain at sale for the land portion.</li>
+      <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">KDR — Knockdown Rebuild</div>
+      <ul style="margin:0 0 18px 0;padding-left:16px">
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Build Year</span> — Construction begins. The original property is demolished; pre-build rent ceases. The build costs (indexed by your build inflation rate from 2026 to build year) are added to the land loan, creating a combined loan. Combined loan repayments begin, with no rental income — this is why Investment Net Cashflow drops sharply in the build year.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Division 43 Depreciation</span> — From the year after build completion, each unsold townhouse generates a capital works deduction at <strong>2.5%/year</strong> of the indexed build cost. This is a non-cash deduction that increases the annual tax refund. Pro-rated as townhouses are sold. Separate from the renovation depreciation system.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">GST on Sale &lt;5 years</span> — Townhouses sold within 5 years of build completion attract 10% GST (1/11 of the sale price, full-turnover method — margin scheme is not modelled). <strong>No CGT discount applies</strong> when GST applies: the gain is treated at the full marginal rate using CPI indexation regardless of the global CGT setting. Beyond 5 years: GST-free, standard CGT rules apply. The sale year pill shows a separate amber GST deduction.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">KDR + Established Property Type</span> — Pre-build years quarantine losses (no deduction against wages). From the build year onwards, new-build rules apply (negative gearing on). The Tax Impact row label transitions mid-projection: red "losses carried forward" pre-build → green "negative gearing benefit" post-build. Accumulated losses apply against the capital gain at sale.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Flip</span> — Setting a townhouse sale year to buildYear+1 marks it as an immediate flip. No rent is earned for that townhouse in the post-build year. GST and full-rate CGT apply (sold within 5 years). Useful for modelling develop-and-sell strategies.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">KDR CGT</span> — Land and build costs are CPI-indexed separately from their own dates: land from original purchase year, build costs from the build year. Sale fees are added to the cost base. For Grandfathered KDR with a post-2027 sale: split CGT applies (50% discount on pre-2027 land gain, CPI indexed on post-2027 gain).</li>
       </ul>
 
-      <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Key Concepts</div>
-      <ul style="margin:0 0 0 0;padding-left:16px">
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Franking Credits</span> — Represent corporate tax already paid (30%) on company profits. Offset personal tax on grossed-up dividends. At 47% marginal rate, net tax on fully franked dividends = (grossedUp × 47%) − frankingCredit ≈ 24.3% effective on the cash dividend. At rates below 30%, excess franking credits are refunded by the ATO.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">CPI Indexation (default)</span> — Introduced May 2026 budget, effective 1 July 2027. Taxable gain = sale price minus (cost base × CPI factor). Full marginal rate on indexed gain, minimum 30% tax floor. Only the gain above inflation is taxed.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">50% CGT Discount</span> — Pre-budget system. Halves the nominal gain before tax. Effective rate at 47% = 23.5% of total gain. Still available for assets held &gt;12 months under pre-budget and new build rules.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Land Tax (by state)</span> — Calculated annually on the grown investment property value using the rates for the selected state. Applied automatically — no manual input required. NT has no land tax. ACT uses an approximation based on unimproved capital value (~40% of property value). Thresholds and rates are 2024-25 schedules and are indexed annually by each state revenue office.</li>
-        <li style="margin-bottom:5px"><span style="color:var(--text)">Net Position</span> — Total assets (offset account + shares portfolio + investment property values + PPOR value) minus total debt (PPOR loan + investment loans), giving gross net worth. A separate <em>After-CGT</em> figure shows the estimated position if all investment properties and shares were sold in 2036, with CGT deducted at your marginal rate using the configured CGT method. Super balance is shown separately as an additional accumulation asset.</li>
+      <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Superannuation</div>
+      <ul style="margin:0 0 18px 0;padding-left:16px">
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Gross Return Rate, Earnings Tax &amp; Fees</span> — Enter the <strong>gross</strong> annual return (e.g. 8%). The fund deducts: (1) <em>Earnings Tax</em> at 15% on investment earnings inside the fund (standard accumulation phase rate), and (2) <em>Annual Fees</em> as a % of balance (default 0.5%, typical of industry funds). Net return = <em>gross × (1 − earningsTax%) − fees%</em>. Example: 8% gross, 15% tax, 0.5% fees → 6.3% actual net return.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Concessional Contributions</span> — Pre-tax contributions (employer SG + salary sacrifice). Cap is $30,000/yr. The 15% contributions tax is deducted inside super automatically. Does not come from your offset (employer/salary funded). Excess above the cap is taxed at your marginal rate and deducted from your offset.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Non-Concessional (NCC)</span> — After-tax contributions from offset/savings. Cap $120,000/yr. No further tax inside super. Deducted from your offset each year.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Division 293 Tax</span> — If income + concessional contributions exceeds $250,000, an additional 15% tax applies (high earners pay 30% total instead of 15%). Deducted from the <strong>super balance</strong> — not from your offset. Enter your actual <em>Gross Income</em> in the Div 293 field for accurate headroom calculation; leaving it at 0 uses your Year 1 P&amp;L surplus as a proxy (which understates gross income and overstates headroom).</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Super in P/L</span> — The NCC cash-from-offset row shows non-concessional contributions as a negative cashflow. Div 293 is deducted from the super balance (not offset) but appears in the same column for display purposes. Preservation age restrictions are not modelled — the balance is shown as an accumulation asset.</li>
       </ul>
 
+      <div style="color:var(--teal);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Net Position &amp; Results</div>
+      <ul style="margin:0 0 18px 0;padding-left:16px">
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Net Position</span> — Gross net worth: total assets (offset + shares + investment property values + PPOR value + super) minus total debt (PPOR loan + investment loans). A separate <em>After-CGT</em> figure estimates the position if all investments were sold in 2036. The <strong>Net Worth column</strong> in the detailed table tracks this value year by year.</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Year-by-Year Table</span> — The detailed table columns: <em>Annual CF</em> = signed net investment cashflow for each active year; <em>Inv.CF</em> = combined result including sale proceeds; <em>Net Worth</em> = full wealth position. Sale events show coloured pills: pink (sold price), green (net proceeds), red (CGT with rate and method label), amber (GST when applicable).</li>
+        <li style="margin-bottom:5px"><span style="color:var(--text)">Not Financial Advice</span> — This tool models illustrative scenarios only. Budget 2026 tax rules modelled as at May 2026. Tax outcomes depend on individual circumstances including your total income, property structure, and ATO assessments. Verify all outputs with a licensed financial adviser or tax professional before making decisions.</li>
+      </ul>
     </div>
   </div>
 </div>
@@ -435,14 +561,14 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
     </div>
   </div>
   <!-- PPOR toggle -->
-  <div style="display:flex;align-items:center;gap:10px;padding:10px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px">
+  <div class="ppor-toggle-row" style="display:flex;align-items:center;gap:10px;padding:10px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px">
     <label class="toggle" style="--t:var(--gold)"><input type="checkbox" id="cfgHasPPOR" checked onchange="onHasPPORChange()"><span class="slider"></span></label>
     <div>
       <span style="font-size:12px;font-weight:600;color:var(--text)">Owner-Occupied Property (PPOR)</span>
       <span style="font-size:10px;color:var(--muted);margin-left:8px">Turn off if renting or modelling cash/savings only</span>
     </div>
     <!-- PPOR mode selector (only when PPOR is ON) -->
-    <div id="pporModeSelector" style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <div id="pporModeSelector" class="ppor-mode-selector" style="margin-left:auto;display:flex;align-items:center;gap:8px">
       <span style="font-size:10px;color:var(--muted)">Status:</span>
       <select class="inp gold" id="cfgPporMode" onchange="onPporModeChange()" style="width:auto;padding:5px 10px;font-size:11px">
         <option value="owned">Already Own</option>
@@ -457,13 +583,13 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-size:10px;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Future PPOR Purchase</div>
         <!-- FHB toggle -->
-        <div style="display:flex;align-items:center;gap:8px">
+        <div class="fhb-row" style="display:flex;align-items:center;gap:8px">
           <label class="toggle" style="--t:var(--green)"><input type="checkbox" id="cfgFHB" onchange="onCfgChange()"><span class="slider"></span></label>
           <span style="font-size:11px;color:var(--green);font-weight:600">First Home Buyer</span>
-          <span style="font-size:9px;color:var(--muted)">FHB stamp duty concessions + LMI rules apply</span>
+          <span style="font-size:9px;color:var(--muted)">FHB stamp duty + LMI rules apply</span>
         </div>
       </div>
-      <div class="g4" style="margin-bottom:10px">
+      <div class="g4 two-col-mobile" style="margin-bottom:10px">
         <div class="field">
           <div class="field-label">Purchase Year</div>
           <select class="inp gold" id="cfgPporFutureYear" onchange="onCfgChange()">
@@ -489,7 +615,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
           <div class="field-note" id="cfgPporFutureLoanNote">Loan calculated from price &amp; deposit</div>
         </div>
       </div>
-      <div class="g4" style="margin-bottom:10px">
+      <div class="g4 two-col-mobile" style="margin-bottom:10px">
         <div class="field">
           <div class="field-label">Conveyancing</div>
           <div class="pfx-wrap"><span class="pfx">$</span><input class="inp inp-money" type="text" inputmode="numeric" id="cfgFutureConveyancing" value="2,000" oninput="onCfgChange()"></div>
@@ -522,7 +648,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
     </div>
     <!-- Existing owned PPOR fields (shown when pporMode='owned') -->
     <div id="pporOwnedFields">
-    <div class="g4" style="margin-bottom:12px">
+    <div class="g4 two-col-mobile" style="margin-bottom:12px">
       <div class="field">
         <div class="field-label">PPOR Starting Loan <span class="tag tag-ppor">PPOR</span></div>
         <div class="pfx-wrap"><span class="pfx">$</span>
@@ -551,7 +677,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
       </div>
     </div>
     <!-- PPOR value/growth -->
-    <div class="g4" style="margin-bottom:12px" id="pporValueFields">
+    <div class="g4 two-col-mobile" style="margin-bottom:12px" id="pporValueFields">
       <div class="field">
         <div class="field-label">PPOR Current Value <span class="tag tag-ppor">PPOR</span></div>
         <div class="pfx-wrap"><span class="pfx">$</span>
@@ -589,18 +715,18 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
     </div>
   </div>
   <!-- Tax + Stress — always visible -->
-  <div class="g4" style="margin-bottom:12px">
+  <div class="g4 two-col-mobile" style="margin-bottom:12px">
     <div class="field">
       <div class="field-label">Marginal Tax Rate <span class="tag tag-tax">TAX</span></div>
       <select class="inp red" id="cfgTaxRate" onchange="onCfgChange()" style="border-color:rgba(248,113,113,0.4);color:var(--red)">
         <option value="0">0% — up to $18,200</option>
         <option value="19">19% — $18,201–$45,000</option>
-        <option value="32.5">32.5% — $45,001–$135,000</option>
-        <option value="37">37% — $135,001–$190,000</option>
+        <option value="34.5">34.5% — $45,001–$135,000 (incl. Medicare)</option>
+        <option value="39">39% — $135,001–$190,000 (incl. Medicare)</option>
         <option value="47" selected>47% — $190,001+ (incl. Medicare)</option>
       </select>
     </div>
-    <div class="field" style="grid-column:span 2">
+    <div class="field stress-field">
       <div class="field-label">Rate Stress Test <span class="tag" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.3)">+x% on PPOR and Investment Loans</span></div>
       <div style="display:flex;gap:6px;padding-top:2px">
         <button class="opt-btn stress active" id="s0" onclick="setStress(0)">None</button>
@@ -634,7 +760,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
     </div>
   </div>
   <!-- Repayment display row -->
-  <div style="margin-top:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+  <div class="repayment-row" style="margin-top:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
     <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">PPOR Monthly Repayment</span>
     <span id="calcRepaymentDisplay" style="font-family:'Playfair Display',serif;font-size:20px;color:var(--gold)">—</span>
     <span style="font-size:10px;color:var(--muted)">/month</span>
@@ -658,18 +784,19 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
   </div>
   <div class="pl-row-label" style="margin-top:0;padding-top:0;border-top:none">
     <span>Income − Life Expenses</span>
-    <span class="row-tag" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,0.3)">user-editable · income after tax, minus living costs · excludes mortgage &amp; investments</span>
+    <span class="row-tag" style="background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,0.3)">user-editable · income after tax − living costs</span>
   </div>
   <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;padding:0 2px">
   <div class="g11" id="plGrid"></div>
   </div><!-- end pl scroll wrapper -->
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 4px 0;font-size:11px;color:var(--muted)">
+  <div class="scroll-hint">← scroll →</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;padding:6px 0 4px 0;font-size:11px;color:var(--muted)">
     <span>Income − Life Expenses total</span>
     <span id="plNetTotal" style="font-family:'Playfair Display',serif;font-size:13px">—</span>
   </div>
   <div class="pl-row-label">
     <span id="mortgageRowLabel">PPOR Mortgage</span>
-    <span class="row-tag" style="background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.25)" id="mortgageRowTag">auto · annual repayment from offset · adjusts with loan settings</span>
+    <span class="row-tag" style="background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.25)" id="mortgageRowTag">auto · monthly repayment × 12</span>
   </div>
   <div class="g11" id="mortgageRow"></div>
   <div class="pl-row-label" id="savingsInterestLabel" style="display:none">
@@ -813,7 +940,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
     </div>
 
     <!-- Dividend inputs -->
-    <div class="g4" style="margin-bottom:12px">
+    <div class="g4 two-col-mobile" style="margin-bottom:12px">
       <div class="field">
         <div class="field-label">Dividend Yield</div>
         <div class="sfx-wrap">
@@ -904,7 +1031,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
     </div>
   </div>
   <div id="superInputs" style="display:none">
-    <div class="g4" style="margin-bottom:12px">
+    <div class="g4 two-col-mobile" style="margin-bottom:12px">
       <div class="field">
         <div class="field-label">Starting Balance</div>
         <div class="pfx-wrap"><span class="pfx">$</span><input class="inp inp-money" type="text" inputmode="numeric" id="superStartBalance" value="100,000" oninput="onSuperChange()"></div>
@@ -921,9 +1048,26 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
         <div class="field-note">After-tax · from offset / savings · cap $120,000/yr · no further tax inside super</div>
       </div>
       <div class="field">
-        <div class="field-label">Growth Rate</div>
+        <div class="field-label">Gross Return Rate</div>
         <div class="sfx-wrap"><input class="inp" type="number" id="superGrowth" value="8.0" step="0.5" min="0" max="20" oninput="onSuperChange()"><span class="sfx">%</span></div>
-        <div class="field-note">Annual investment return inside super</div>
+        <div class="field-note">Gross annual investment return before tax &amp; fees</div>
+      </div>
+    </div>
+    <div class="g4 two-col-mobile" style="margin-bottom:12px">
+      <div class="field">
+        <div class="field-label">Earnings Tax <span class="tag" style="background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.25)">INSIDE SUPER</span></div>
+        <div class="sfx-wrap"><input class="inp" type="number" id="superEarningsTax" value="15" step="1" min="0" max="15" oninput="onSuperChange()"><span class="sfx">%</span></div>
+        <div class="field-note">Tax on earnings inside the fund · standard rate 15%</div>
+      </div>
+      <div class="field">
+        <div class="field-label">Annual Fees</div>
+        <div class="sfx-wrap"><input class="inp" type="number" id="superAnnualFee" value="0.5" step="0.1" min="0" max="5" oninput="onSuperChange()"><span class="sfx">%</span></div>
+        <div class="field-note">Admin + investment management fees as % of balance · typical 0.3–1%</div>
+      </div>
+      <div class="field">
+        <div class="field-label">Gross Income (Div 293) <span class="tag" style="background:rgba(78,205,196,0.08);color:var(--teal);border:1px solid rgba(78,205,196,0.25)">OPTIONAL</span></div>
+        <div class="pfx-wrap"><span class="pfx">$</span><input class="inp inp-money" type="text" inputmode="numeric" id="superGrossIncome" value="0" oninput="onSuperChange()"></div>
+        <div class="field-note">Your actual gross taxable income for Div 293 threshold · 0 = use P&amp;L proxy</div>
       </div>
     </div>
     <!-- Div 293 info panel -->
@@ -933,7 +1077,7 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
         <div><span style="color:var(--muted)">Div 293 headroom: </span><span id="superDiv293Headroom" style="font-weight:600">—</span></div>
         <div><span style="color:var(--muted)">Div 293 extra tax: </span><span id="superDiv293TaxNote" style="font-weight:600">—</span></div>
       </div>
-      <div style="margin-top:5px;font-size:9px;color:var(--muted)" id="superDiv293Note">Based on Year 1 Income − Life Expenses as income proxy · your actual gross income may be higher</div>
+      <div style="margin-top:5px;font-size:9px;color:var(--muted)" id="superDiv293Note">Income proxy: enter Gross Income above for exact Div 293 threshold · otherwise uses Year 1 P&amp;L (net surplus, understates gross)</div>
     </div>
   </div>
 </div>
@@ -941,13 +1085,13 @@ tbody td:first-child{text-align:left;color:var(--muted);font-family:'Playfair Di
 <!-- NET POSITION -->
 <div class="card" style="margin-bottom:14px">
   <!-- Headline row -->
-  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px">
+  <div class="net-pos-head" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:14px">
     <div>
       <div class="lbl">Net Position — End of 2036</div>
       <div class="net-pos-value" id="netPosValue">—</div>
       <div style="font-size:10px;color:var(--muted);margin-top:3px" id="netPosNote">—</div>
     </div>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+    <div class="net-pos-breakdown" style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
       <div class="np-item">PPOR Loan<span id="npPPOR">—</span></div>
       <div class="np-item">Inv. Loan<span id="npINV">—</span></div>
       <div class="np-item">Total Debt<span id="npDebt">—</span></div>
@@ -1070,7 +1214,7 @@ let cfg={hasPPOR:true,pporMode:'owned',pporFutureYear:2027,pporFuturePrice:70000
 // invCfgs: array of investment property configs (multi-property support)
 // defaultInvCfg() and invCfgs array defined below with the card builder JS
 let sharesCfg={enabled:false,pct:75,growth:7,dividendYield:4,frankingPct:50,dividendMode:'cash',startBalance:0,debtRecycling:false,manualSales:[]};
-let superCfg={enabled:false,startBalance:100000,concessionalPerYear:25000,nonConcessionalPerYear:0,growthRate:8.0};
+let superCfg={enabled:false,startBalance:100000,concessionalPerYear:25000,nonConcessionalPerYear:0,growthRate:8.0,earningsTaxRate:15,annualFeePct:0.5,grossIncomeOverride:0};
 let charts={};
 
 // ─── MONEY INPUT HELPERS ──────────────────────────────────────────────────────
@@ -2107,6 +2251,9 @@ function onSuperChange(){
   superCfg.concessionalPerYear=parseNum('superConcessional')||0;
   superCfg.nonConcessionalPerYear=parseNum('superNCC')||0;
   superCfg.growthRate=parseFloat(document.getElementById('superGrowth')?.value)||8.0;
+  superCfg.earningsTaxRate=parseFloat(document.getElementById('superEarningsTax')?.value)??15;
+  superCfg.annualFeePct=parseFloat(document.getElementById('superAnnualFee')?.value)??0.5;
+  superCfg.grossIncomeOverride=parseNum('superGrossIncome')||0;
   const lbl=document.getElementById('superToggleLabel');
   if(lbl){lbl.textContent=superCfg.enabled?'Enabled':'Disabled';lbl.className='toggle-label'+(superCfg.enabled?' on':'');}
   const inp=document.getElementById('superInputs');
@@ -2122,7 +2269,7 @@ function updSuperNote(){
   const excessConc=Math.max(0,rawConc-CONC_CAP);
   const overCap=rawConc>CONC_CAP;
   const remaining=Math.max(0,CONC_CAP-conc);       // space left to cap
-  const income=Math.max(0,plValues[0]||0);
+  const income=superCfg.grossIncomeOverride>0?superCfg.grossIncomeOverride:Math.max(0,plValues[0]||0);
   const div293Headroom=Math.max(0,DIV293-income-conc); // gap to $250k threshold
   // Real additional concessional you can add: bounded by BOTH remaining cap AND div 293 headroom
   const addableBeforeDiv293=Math.min(remaining,div293Headroom);
@@ -2708,8 +2855,17 @@ function simulate(pl){
             const thGST=(yearsFromBuild>0&&yearsFromBuild<=5)?Math.round(sp/11):0;
             const savedM=cfg.cgtMethod;
             let thCGT=0;
-            if(inv.propertyType==='grandfathered'&&yr>=2027&&p.v2027>0){
-              // Land value at 2027 per TH
+            // <5 yrs from build: GST applies (already set) + no CGT discount
+            // treated as developer/new supply — full marginal rate applies, no 50% discount
+            const noDiscount=yearsFromBuild>0&&yearsFromBuild<=5;
+            if(noDiscount){
+              // Force indexation (full rate, no 50% discount) regardless of global setting
+              cfg.cgtMethod='indexation';
+              thCGT=calcKDRCGT(sp,lcp,bcn,
+                inv.alreadyOwned?(inv.originalPurchaseYear||inv.year):inv.year,
+                inv.kdr.buildYear,yr,thSaleFees);
+              cfg.cgtMethod=savedM;
+            } else if(inv.propertyType==='grandfathered'&&yr>=2027&&p.v2027>0){
               const landV2027per=p.v2027/inv.kdr.numTownhouses;
               thCGT=calcKDRSplitCGT(sp,lcp,bcn,landV2027per,inv.kdr.buildYear,yr,thSaleFees);
             } else {
@@ -2811,7 +2967,16 @@ function simulate(pl){
         p.renovRepairCash=(renovLumpCash+repairLumpCash); // stored for row aggregation
         // Investment loan interest for this year (approximate using current balance)
         const approxYearlyInterest=p.invLoan*p.iM*12;
-        let taxable=netRent-approxYearlyInterest-opCosts-dep-repairCashDed;
+        // Division 43 capital works deduction (2.5%/yr) on KDR build costs from completion year
+        let buildDepn=0;
+        if(inv.mode==='kdr'&&inv.kdr.buildYear>0&&yr>inv.kdr.buildYear){
+          const bFd=Math.pow(1+(inv.kdr.buildInflation||5)/100,Math.max(0,inv.kdr.buildYear-2026));
+          const totalIndexedBuild=inv.kdr.townhouses.slice(0,inv.kdr.numTownhouses).reduce((s,th)=>s+(th.buildCost||0)*bFd,0);
+          // Only deduct for townhouses still held (not yet sold)
+          const heldFrac=p.soldTownhouses.slice(0,inv.kdr.numTownhouses).filter(s=>!s).length/Math.max(1,inv.kdr.numTownhouses);
+          buildDepn=Math.round(totalIndexedBuild*0.025*heldFrac);
+        }
+        let taxable=netRent-approxYearlyInterest-opCosts-dep-repairCashDed-buildDepn;
         let effNG=inv.negativeGearing;
         if(inv.mode==='kdr'&&inv.propertyType==='established'&&inv.kdr.buildYear>0)effNG=(yr>=inv.kdr.buildYear);
         if(!effNG&&taxable<0){p.lossCarryFwd+=Math.abs(taxable);}
@@ -2910,7 +3075,8 @@ function simulate(pl){
       // Division 293: additional 15% when income + capped concessional > $250k
       // (assessed on capped portion only — excess is already taxed as income above)
       const cappedConc=Math.min(rawConc,CONC_CAP);
-      const incomeProxy=Math.max(0,pl[y]);
+      // Use user-supplied gross income override if set (year 0 only); otherwise use PL as proxy
+      const incomeProxy=(superCfg.grossIncomeOverride>0&&y===0)?superCfg.grossIncomeOverride:Math.max(0,pl[y]);
       if(incomeProxy+cappedConc>DIV293_THRESHOLD){
         const div293Taxable=Math.min(cappedConc,Math.max(0,incomeProxy+cappedConc-DIV293_THRESHOLD));
         div293Tax=Math.round(div293Taxable*0.15);
@@ -2920,7 +3086,9 @@ function simulate(pl){
       nccFromOffset=nccRaw;
       offset-=nccFromOffset;
       // Super balance: grow first, then add contributions
-      superBalance=Math.round(superBalance*(1+superCfg.growthRate/100));
+      // Net super return: gross return minus 15% earnings tax minus admin fees
+      const superNetRate=superCfg.growthRate/100*(1-(superCfg.earningsTaxRate??15)/100)-(superCfg.annualFeePct??0.5)/100;
+      superBalance=Math.round(superBalance*(1+superNetRate));
       superBalance+=superContribNet+nccFromOffset;
     }
 
@@ -3258,7 +3426,7 @@ function updUI(data){
   const mortLbl=document.getElementById('mortgageRowLabel');
   const mortTag=document.getElementById('mortgageRowTag');
   if(mortLbl) mortLbl.textContent=cfg.hasPPOR?'PPOR Mortgage':'No Mortgage (PPOR off)';
-  if(mortTag) mortTag.textContent=cfg.hasPPOR?'auto · annual repayment from offset · adjusts with loan settings':'$0 — no PPOR';
+  if(mortTag) mortTag.textContent=cfg.hasPPOR?'auto · monthly repayment × 12':'$0 — no PPOR';
 
   // PPOR Mortgage row — annual repayment, auto from loan settings
   const mRowEl=document.getElementById('mortgageRow');
@@ -3730,7 +3898,7 @@ function updUI(data){
     ${showRows?`<th class="thg thg-inv">Inv.Loan</th><th class="thg thg-inv">Inv.Int.</th><th class="thg thg-inv">Annual CF</th><th class="thg thg-inv">Running Costs</th><th class="thg thg-inv">Inv.CF</th><th class="thg thg-inv">Tax Impact</th><th class="thg thg-inv">Prop.Value</th><th class="thg thg-inv">Inv.Equity</th>`:''}
     ${sharesCfg.enabled?`<th style="border-top:2px solid var(--amber);padding-top:6px;color:var(--amber)">Shares Value</th><th style="border-top:2px solid var(--amber);padding-top:6px;color:var(--amber)">Alloc.</th><th style="border-top:2px solid var(--amber);padding-top:6px;color:var(--amber)">Shares CGT</th>`:''}
     ${superCfg.enabled?`<th style="border-top:2px solid var(--green);padding-top:6px;color:var(--green)">Super Balance</th><th style="border-top:2px solid var(--green);padding-top:6px;color:var(--green)">NCC+Div293</th>`:''}
-    <th>User P/L</th><th>Total P/L</th></tr>`;
+    <th>User P/L</th><th>Total P/L</th><th style="border-left:2px solid var(--border);color:var(--purple)">Net Worth</th></tr>`;
 
   const tb=document.getElementById('tableBody');tb.innerHTML='';
   data.forEach(r=>{
@@ -3756,7 +3924,8 @@ function updUI(data){
     if(r.saleEvent){
       pills+=`<span class="pill" style="background:var(--pink-dim);color:var(--pink);border:1px solid rgba(244,114,182,0.35)">✦ Sold ${fmtK(r.salePrice)}</span>`;
       pills+=`<span class="pill" style="background:var(--green-dim);color:var(--green);border:1px solid rgba(107,222,143,0.3)">+${fmtK(r.saleNet)}</span>`;
-      pills+=`<span class="pill" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.25)">CGT−${fmtK(r.cgtAmt)}</span>`;
+      if(r.cgtAmt>0){const cm=cfg.cgtMethod==='indexation'?'CPI idx':'50% disc';pills+=`<span class="pill" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.25)">CGT−${fmtK(r.cgtAmt)} <span style="opacity:0.65;font-size:9px">${Math.round(cfg.taxRate*100)}% ${cm}</span></span>`;}
+      if(r.gstAmt>0)pills+=`<span class="pill" style="background:rgba(251,191,36,0.08);color:var(--amber);border:1px solid rgba(251,191,36,0.3)">GST−${fmtK(r.gstAmt)}</span>`;
     }
     tb.innerHTML+=`<tr${r.buyEvent?' class="prow"':''}>
       <td>${r.year}${pills}</td>
@@ -3787,6 +3956,7 @@ function updUI(data){
       <td style="color:var(--red)">${(r.nccFromOffset||0)+(r.div293Tax||0)>0?'−'+fmtFull((r.nccFromOffset||0)+(r.div293Tax||0)):'—'}</td>`:''}
       <td style="color:${r.pl>=0?'var(--green)':'var(--red)'}">${fmtPM(r.pl)}</td>
       <td style="color:${tot>=0?'var(--purple)':'var(--red)'};font-weight:600">${fmtPM(tot)}</td>
+      <td style="color:var(--purple);font-weight:700;border-left:2px solid var(--border)">${fmtFull(Math.max(0,r.offset)+(r.sharesValue||0)+(r.propValue||0)+(r.pporValue||0)+(r.superBalance||0)-r.mainLoan-(r.invLoan||0))}</td>
     </tr>`;
   });
 }
@@ -3922,6 +4092,7 @@ function onCfgChange(){
       cs.style.borderColor=shortfall>0?'rgba(248,113,113,0.35)':'var(--border)';
     }
   }
+  cfg.startLoan   = parseNum('cfgLoan') || 600000;
   cfg.startOffset = parseNum('cfgOffset');
   cfg.savingsStartBalance = parseNum('cfgSavingsBalance') || 50000;
   cfg.savingsRate = parseFloat(document.getElementById('cfgSavingsRate')?.value) || 5.0;
@@ -4137,6 +4308,165 @@ function toggleHelp(){
 }
 
 // ─── DEBOUNCE ─────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCENARIO TABS — Multi-portfolio comparison (max 5 tabs)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let scenarios=[{id:1,name:'Scenario 1',state:null}];
+let activeScenarioId=1;
+let _nextScenId=2;
+
+function captureCurrentState(){
+  YEARS.forEach((_,i)=>{const el=document.getElementById('pl'+i);if(el)plValues[i]=parseNum('pl'+i)||0;});
+  return{cfg:JSON.parse(JSON.stringify(cfg)),invCfgs:JSON.parse(JSON.stringify(invCfgs)),sharesCfg:JSON.parse(JSON.stringify(sharesCfg)),superCfg:JSON.parse(JSON.stringify(superCfg)),plValues:[...plValues]};
+}
+
+function applyState(s){
+  Object.assign(cfg,JSON.parse(JSON.stringify(s.cfg)));
+  invCfgs.length=0; JSON.parse(JSON.stringify(s.invCfgs)).forEach(ic=>invCfgs.push(ic));
+  Object.assign(sharesCfg,JSON.parse(JSON.stringify(s.sharesCfg)));
+  Object.assign(superCfg,JSON.parse(JSON.stringify(s.superCfg)));
+  plValues.length=0; s.plValues.forEach(v=>plValues.push(v));
+  syncCfgToForms();
+  renderAllPropertyCards();
+  YEARS.forEach((_,i)=>{const el=document.getElementById('pl'+i);if(!el)return;const v=plValues[i]||0;el.value=v!==0?fmtInpNum(Math.round(Math.abs(v))):0;stylePL(i,v);});
+  syncSharesToForms();
+  syncSuperToForms();
+  onHasPPORChange();
+  onPporModeChange();
+  onCfgChange();
+}
+
+function syncCfgToForms(){
+  const c=cfg;
+  const se=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v;};
+  const sm=(id,v)=>{const e=document.getElementById(id);if(e)e.value=fmtInpNum(Math.round(v||0));};
+  const sc=(id,v)=>{const e=document.getElementById(id);if(e)e.checked=!!v;};
+  sc('cfgHasPPOR',c.hasPPOR);
+  se('cfgPporMode',c.pporMode||'owned');
+  sm('cfgLoan',c.startLoan||0);
+  sm('cfgOffset',c.startOffset||0);
+  se('cfgTerm',c.loanTerm||30);
+  se('cfgPPORRate',(c.pporRate*100).toFixed(2));
+  sm('cfgPPORValue',c.pporValue||0);
+  se('cfgPPORGrowth',(c.pporGrowth*100).toFixed(1));
+  se('cfgTaxRate',Math.round((c.taxRate||0.47)*100));
+  se('cfgCPIRate',c.cpiRate||3);
+  sm('cfgSavingsBalance',c.savingsStartBalance||0);
+  se('cfgSavingsRate',c.savingsRate||5);
+  se('cfgPporFutureYear',c.pporFutureYear||2027);
+  sm('cfgPporFuturePrice',c.pporFuturePrice||700000);
+  se('cfgPporFutureDeposit',c.pporFutureDepositPct||20);
+  se('cfgPporFutureState',c.pporFutureState||'VIC');
+  sc('cfgFHB',c.pporFutureFHB);
+  sc('cfgFutureLMI',c.pporFutureIncludeLMI);
+  sm('cfgFutureConveyancing',c.pporFutureConveyancing||2000);
+  sm('cfgFutureSavings',c.savingsStartBalance||0);
+  se('cfgFutureSavingsRate',c.savingsRate||5);
+  setStress(c.stressBps||0);
+  setCGTMethod(c.cgtMethod||'indexation');
+}
+
+function syncSharesToForms(){
+  const s=sharesCfg;
+  const se=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v;};
+  const sm=(id,v)=>{const e=document.getElementById(id);if(e)e.value=fmtInpNum(Math.round(v||0));};
+  const sc=(id,v)=>{const e=document.getElementById(id);if(e)e.checked=!!v;};
+  sc('sharesToggle',s.enabled);
+  const lbl=document.getElementById('sharesToggleLabel');
+  if(lbl){lbl.textContent=s.enabled?'Enabled':'Disabled';lbl.className='toggle-label'+(s.enabled?' on':'');}
+  const inp=document.getElementById('sharesInputs');
+  if(inp)inp.style.display=s.enabled?'':'none';
+  se('sharesPct',s.pct||75); se('sharesGrowth',s.growth||7);
+  sm('sharesStart',s.startBalance||0); se('sharesDivYield',s.dividendYield||4);
+  se('sharesFranking',s.frankingPct||50); sc('debtRecyclingToggle',s.debtRecycling||false);
+  setDivMode(s.dividendMode||'cash');
+  document.querySelectorAll('[id^="msRow"]').forEach(e=>e.remove());
+  const emptyEl=document.getElementById('manualSaleEmpty');
+  if(emptyEl)emptyEl.style.display=(s.manualSales&&s.manualSales.length)?'none':'';
+  if(s.manualSales)s.manualSales.forEach(ms=>addManualSale(ms.year,ms.amount));
+}
+
+function syncSuperToForms(){
+  const s=superCfg;
+  const se=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined)e.value=v;};
+  const sm=(id,v)=>{const e=document.getElementById(id);if(e)e.value=fmtInpNum(Math.round(v||0));};
+  const sc=(id,v)=>{const e=document.getElementById(id);if(e)e.checked=!!v;};
+  sc('superToggle',s.enabled);
+  const lbl=document.getElementById('superToggleLabel');
+  if(lbl){lbl.textContent=s.enabled?'Enabled':'Disabled';lbl.className='toggle-label'+(s.enabled?' on':'');}
+  const inp=document.getElementById('superInputs');
+  if(inp)inp.style.display=s.enabled?'':'none';
+  sm('superStartBalance',s.startBalance||100000); sm('superConcessional',s.concessionalPerYear||25000);
+  sm('superNCC',s.nonConcessionalPerYear||0); se('superGrowth',s.growthRate||8);
+  se('superEarningsTax',s.earningsTaxRate??15); se('superAnnualFee',s.annualFeePct??0.5);
+  sm('superGrossIncome',s.grossIncomeOverride||0);
+}
+
+function switchScenario(id){
+  if(id===activeScenarioId)return;
+  const cur=scenarios.find(s=>s.id===activeScenarioId);
+  if(cur)cur.state=captureCurrentState();
+  const tgt=scenarios.find(s=>s.id===id);
+  if(!tgt)return;
+  activeScenarioId=id;
+  if(!tgt.state){resetToZero();}else{applyState(tgt.state);}
+  renderTabBar();
+}
+
+function addScenario(){
+  if(scenarios.length>=5)return;
+  const cur=scenarios.find(s=>s.id===activeScenarioId);
+  if(cur)cur.state=captureCurrentState();
+  const id=_nextScenId++;
+  scenarios.push({id,name:'Scenario '+id,state:null});
+  activeScenarioId=id;
+  resetToZero();
+  renderTabBar();
+}
+
+function deleteScenario(evt,id){
+  evt.stopPropagation();
+  if(scenarios.length<=1)return;
+  if(!confirm('Delete "'+scenarios.find(s=>s.id===id)?.name+'"?'))return;
+  const idx=scenarios.findIndex(s=>s.id===id);
+  scenarios.splice(idx,1);
+  if(activeScenarioId===id){
+    const next=scenarios[Math.min(idx,scenarios.length-1)];
+    activeScenarioId=next.id;
+    if(!next.state)resetToZero();else applyState(next.state);
+  }
+  renderTabBar();
+}
+
+function startRenameScenario(evt,id){
+  evt.stopPropagation();
+  const sc=scenarios.find(s=>s.id===id);
+  if(!sc)return;
+  const el=document.getElementById('scenTab_name_'+id);
+  if(!el)return;
+  el.contentEditable='true';
+  el.focus();
+  const r=document.createRange(); r.selectNodeContents(el);
+  const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  const finish=()=>{el.contentEditable='false';sc.name=el.textContent.trim()||sc.name;el.textContent=sc.name;el.removeEventListener('blur',finish);el.removeEventListener('keydown',onKey);};
+  const onKey=e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}if(e.key==='Escape'){el.textContent=sc.name;el.blur();}};
+  el.addEventListener('blur',finish);
+  el.addEventListener('keydown',onKey);
+}
+
+function renderTabBar(){
+  const bar=document.getElementById('scenarioTabBar');
+  if(!bar)return;
+  const canAdd=scenarios.length<5, canDel=scenarios.length>1;
+  bar.innerHTML='<div class="scen-tabs">'+
+    scenarios.map(s=>{const isActive=s.id===activeScenarioId;return`<div class="scen-tab${isActive?' active':''}" onclick="switchScenario(${s.id})"><span class="scen-tab-name" id="scenTab_name_${s.id}">${escHtml(s.name)}</span>${isActive?`<button class="scen-tab-edit" onclick="startRenameScenario(event,${s.id})" title="Rename">✎</button>`:''}`+`${canDel?`<button class="scen-tab-close" onclick="deleteScenario(event,${s.id})" title="Delete">×</button>`:''}</div>`;}).join('')+
+    (canAdd?`<button class="scen-tab-add" onclick="addScenario()" title="Add scenario (max 5)">＋ New</button>`:`<span class="scen-tab-maxed">Max 5</span>`)+
+    '</div>';
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 let _t;
 function deb(){clearTimeout(_t);_t=setTimeout(()=>{const d=simulate(plValues);updCharts(d);updUI(d);},180);}
 
@@ -4144,6 +4474,8 @@ function deb(){clearTimeout(_t);_t=setTimeout(()=>{const d=simulate(plValues);up
 buildEditor();
 // Render investment property cards and initialise
 renderAllPropertyCards();
+// Render scenario tab bar
+renderTabBar();
 // Initialise cfg.repayment via onCfgChange (also populates display)
 onCfgChange();
 // Multi-property init happens via renderAllPropertyCards()
